@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9 Dice Predictor</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#000,#4c1d95,#1e3a8a);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  color:white;
+}
+
+.container{
+  width:100%;
+  max-width:600px;
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(15px);
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 0 40px rgba(0,0,0,0.6);
+}
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+  background:linear-gradient(to right,#ec4899,#22d3ee);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+h2{
+  text-align:center;
+  margin-bottom:10px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:10px;
+  margin-top:15px;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.2s;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+.btn-purple{background:#7c3aed;color:white;}
+.btn-pink{background:#db2777;color:white;}
+.btn-orange{background:#f97316;color:white;}
+.btn-green{background:#10b981;color:white;}
+.btn-cyan{background:#06b6d4;color:white;width:100%;margin-top:10px;}
+.btn-gray{background:#111;color:white;width:100%;margin-top:15px;}
+
+input{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin-top:10px;
+}
+
+.result-box{
+  background:rgba(255,255,255,0.15);
+  padding:10px;
+  border-radius:10px;
+  margin-top:10px;
+  font-size:14px;
+}
+
+.result-item{
+  padding:10px;
+  border-radius:10px;
+  margin-top:10px;
+  font-weight:bold;
+}
+
+.besar{background:#f97316;}
+.kecil{background:#3b82f6;}
+
+.rule{
+  text-align:center;
+  font-size:12px;
+  margin-top:15px;
+  opacity:.7;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🎲 9 Dice Predictor</h1>
+  <div id="app"></div>
+  <div class="rule">Rule: ≥32 = BESAR | ≤31 = KECIL</div>
+</div>
+
+<script>
+const app = document.getElementById("app");
+
+let step = 1;
+let device = null;
+let browser = null;
+let mode = null;
+let results = [];
+
+const devices = [
+  "iPhone 11","iPhone 12","iPhone 13","iPhone 14","iPhone 15",
+  "Samsung S23","Samsung S24","Xiaomi 13","Xiaomi 14",
+  "Oppo Find X5","Vivo V29",
+  "Windows 10","Windows 11",
+  "Custom"
+];
+
+const browsers = ["Opera","Google","Chrome","Safari","Edge","Custom"];
+
+function roll9Dice(){
+  let total = 0;
+  for(let i=0;i<9;i++){
+    total += Math.floor(Math.random()*6)+1;
+  }
+  return total;
+}
+
+function generatePrediction(){
+  let times = mode === "MPL" ? 3 : 1;
+  results = [];
+
+  for(let i=0;i<times;i++){
+    let total = roll9Dice();
+    let kategori = total >= 32 ? "BESAR" : "KECIL";
+    results.push({total,kategori});
+  }
+
+  if(mode === "MPL" && results.length === 3){
+    if(results[0].kategori === results[1].kategori){
+      results = results.slice(0,2);
+    }
+  }
+
+  render();
+}
+
+function resetAll(){
+  step = 1;
+  device = null;
+  browser = null;
+  mode = null;
+  results = [];
+  render();
+}
+
+function render(){
+  app.innerHTML = "";
+
+  if(step === 1){
+    app.innerHTML += "<h2>Step 1: Pilih Device</h2>";
+    let grid = document.createElement("div");
+    grid.className = "grid";
+
+    devices.forEach(d=>{
+      let btn = document.createElement("button");
+      btn.innerText = d;
+      btn.className = "btn-purple";
+      btn.onclick = ()=>{
+        if(d === "Custom"){
+          device = "Custom";
+          render();
+        }else{
+          device = d;
+          step = 2;
+          render();
+        }
+      };
+      grid.appendChild(btn);
+    });
+
+    app.appendChild(grid);
+
+    if(device === "Custom"){
+      let input = document.createElement("input");
+      input.placeholder = "Ketik device...";
+      input.oninput = e=> device = e.target.value;
+      app.appendChild(input);
+
+      let btn = document.createElement("button");
+      btn.innerText = "Lanjut";
+      btn.className = "btn-cyan";
+      btn.onclick = ()=>{
+        if(device){
+          step = 2;
+          render();
+        }
+      };
+      app.appendChild(btn);
+    }
+  }
+
+  else if(step === 2){
+    app.innerHTML += `<p>Device: <b>${device}</b></p>`;
+    app.innerHTML += "<h2>Step 2: Pilih Browser</h2>";
+
+    let grid = document.createElement("div");
+    grid.className = "grid";
+
+    browsers.forEach(b=>{
+      let btn = document.createElement("button");
+      btn.innerText = b;
+      btn.className = "btn-pink";
+      btn.onclick = ()=>{
+        if(b === "Custom"){
+          browser = "Custom";
+          render();
+        }else{
+          browser = b;
+          step = 3;
+          render();
+        }
+      };
+      grid.appendChild(btn);
+    });
+
+    app.appendChild(grid);
+
+    if(browser === "Custom"){
+      let input = document.createElement("input");
+      input.placeholder = "Ketik browser...";
+      input.oninput = e=> browser = e.target.value;
+      app.appendChild(input);
+
+      let btn = document.createElement("button");
+      btn.innerText = "Lanjut";
+      btn.className = "btn-cyan";
+      btn.onclick = ()=>{
+        if(browser){
+          step = 3;
+          render();
+        }
+      };
+      app.appendChild(btn);
+    }
+  }
+
+  else if(step === 3 && results.length === 0){
+    app.innerHTML += `<p>Device: <b>${device}</b></p>`;
+    app.innerHTML += `<p>Browser: <b>${browser}</b></p>`;
+    app.innerHTML += "<h2>Step 3: Pilih Mode</h2>";
+
+    app.innerHTML += `
+      <div class="grid">
+        <button class="btn-orange" onclick="mode='MPL';generatePrediction()">MPL (3x)</button>
+        <button class="btn-green" onclick="mode='1M';generatePrediction()">1M (1x)</button>
+      </div>
+    `;
+  }
+
+  else if(results.length > 0){
+    app.innerHTML += "<h2>🔮 RESULT</h2>";
+    app.innerHTML += `
+      <div class="result-box">
+        <p>Device: ${device}</p>
+        <p>Browser: ${browser}</p>
+        <p>Mode: ${mode}</p>
+      </div>
+    `;
+
+    results.forEach(r=>{
+      let div = document.createElement("div");
+      div.className = "result-item " + (r.kategori === "BESAR" ? "besar" : "kecil");
+      div.innerText = `Total: ${r.total} → ${r.kategori}`;
+      app.appendChild(div);
+    });
+
+    let btn = document.createElement("button");
+    btn.innerText = "⬅ Back to Start";
+    btn.className = "btn-gray";
+    btn.onclick = resetAll;
+    app.appendChild(btn);
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
